@@ -1,0 +1,36 @@
+name: fuzz
+on: [push, pull_request]
+jobs:
+  fuzz-test:
+    name: Fuzz test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go version
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+
+      - name: Checkout radamsa code
+        run: git clone https://gitlab.com/akihe/radamsa radamsa
+
+      - name: Install radamsa
+        working-directory: ./radamsa
+        run: make && sudo make install
+
+      - name: Checkout code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          path: ./sriov-cni
+
+      - name: Build SRIOV CNI
+        working-directory: ./sriov-cni
+        run: make
+
+      - name: Fuzz
+        working-directory: ./sriov-cni/scripts
+        run: sudo ./run-fuzzer.sh
+
+      - name: test
+        continue-on-error: true
+        working-directory: ./sriov-cni
+        run: ls -l ./build
