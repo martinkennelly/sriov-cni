@@ -10,6 +10,7 @@ fuzz="${root}/test/fuzz"
 fuzz_config="${fuzz}/configs"
 test_iter="${TEST_ITERATIONS:=10000}"
 sriov="${SRIOV_PATH:=${root}/build/sriov}"
+radamsa="${RADAMSA_PATH:=/usr/bin/radamsa}"
 
 # Check if SRIOV CNI & go available
 check_requirements() {
@@ -41,7 +42,7 @@ echo "# executing SRIOV CNI fuzzer '${test_iter}' time(s) for all configs in '${
 for config in ${fuzz_config}/*; do
   log_dir="$(mktemp -q -p '/tmp' -d -t sriov-cni-XXXXXX)"
   log_file="$(mktemp -q "$log_dir/sriov-cni-fuzzXXXX.log")"
-  bash -c "${root}/build/${app_name} --tests ${test_iter} --config ${config} --out ${log_file}"
+  bash -c "${root}/build/${app_name} --tests ${test_iter} --radamsa ${radamsa} --cni ${sriov} --config ${config} --panicOnly --out ${log_file}"
   echo "## Config file - '${config}' ##" && cat "${config}"
   echo "## Log file ## - '${log_file}'" && cat "${log_file}"
 done
