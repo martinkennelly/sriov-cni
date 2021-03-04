@@ -17,7 +17,6 @@ import (
 
 // Default values
 const (
-	defPath      = "/opt/cni/bin/sriov"
 	defTestNum   = 100000
 	defPanicOnly = false
 )
@@ -101,7 +100,8 @@ func main() {
 	// Parse arguments
 	config := flag.String("config", "", "Config to be used (device value would be ignored if specified)")
 	device := flag.String("device", "", "Test device PCI address")
-	cniPath := flag.String("cni", defPath, "Provides path to CNI executable")
+	cniPath := flag.String("cni", "", "Provides path to CNI executable")
+	radamsa := flag.String("radamsa", "", "Path to radamsa binary")
 	testNum := flag.Int("tests", defTestNum, "Number of tests to conduct")
 	logFile := flag.String("out", os.Args[0]+".log", "Log file path for successful attempts")
 	panicOnly := flag.Bool("panicOnly", defPanicOnly, "Log only Go panics")
@@ -109,6 +109,16 @@ func main() {
 
 	if *device == "" && *config == "" {
 		fmt.Println("error: device has to be specified or config file has to be provided")
+		os.Exit(1)
+	}
+
+	if *radamsa == "" {
+		fmt.Println("error: set '--radamsa' flag with location of radamsa binary")
+		os.Exit(1)
+	}
+
+	if *cniPath == "" {
+		fmt.Println("error: set '--cni' flag with location of SRIOV CNI binary")
 		os.Exit(1)
 	}
 
@@ -129,31 +139,20 @@ func main() {
 		os.Exit(3)
 	}
 
-	var conf string
-	if *config == "" {
-		conf = fmt.Sprintf(`{
-		"cniVersion": "0.3.0",
-		"deviceID":"%s",
-		"name": "sriov-net-test",
-		"spoofchk":"off",
-		"type": "sriov"
-		}`, *device)
-	} else {
-		confBytes, err := ioutil.ReadFile(*config)
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(4)
-		}
-		conf = string(confBytes)
+	confBytes, err := ioutil.ReadFile(*config)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(4)
 	}
+	conf := string(confBytes)
 
 	var sCalls []cmdStatus // successful calls
 	var fCalls []cmdStatus // failed calls
 
 	// Perform test
 	for i := 0; i < *testNum; i++ {
-		// Malform StdinData using radamsa
-		radamsaCmd := exec.Command("radamsa")
+		// Malformed StdinData using radamsa
+		radamsaCmd := exec.Command(*radamsa)
 		radamsaCmd.Stdin = strings.NewReader(conf)
 		malformed, err := radamsaCmd.CombinedOutput()
 		if err != nil {
