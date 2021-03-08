@@ -10,7 +10,7 @@ fuzz="${root}/test/fuzz"
 fuzz_config="${fuzz}/configs"
 test_iter="${TEST_ITERATIONS:=10000}"
 sriov="${SRIOV_PATH:=${root}/build/sriov}"
-radamsa="${RADAMSA_PATH:=/usr/bin/radamsa}"
+radamsa="${RADAMSA_PATH:=/usr/local/bin/radamsa}"
 
 # Check if SRIOV CNI & go available
 check_requirements() {
