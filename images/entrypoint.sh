@@ -55,7 +55,7 @@ do
 done
 
 # Copy file into proper place.
-cp -f "$SRIOV_BIN_FILE" "$CNI_BIN_DIR"
+sudo cp -f "$SRIOV_BIN_FILE" "$CNI_BIN_DIR"
 
 echo "Entering sleep... (success)"
 
